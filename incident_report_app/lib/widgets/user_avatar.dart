@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../models/user_role.dart';
 import '../theme/app_theme.dart';
 
-/// The role avatar inside a cyan circle (same style as the role cards).
 class UserAvatar extends StatelessWidget {
   const UserAvatar({super.key, required this.role, this.size = 48});
 
@@ -25,7 +24,6 @@ class UserAvatar extends StatelessWidget {
   }
 }
 
-/// A small cyan pill showing "Student" or "Staff".
 class RoleBadge extends StatelessWidget {
   const RoleBadge({super.key, required this.role});
 

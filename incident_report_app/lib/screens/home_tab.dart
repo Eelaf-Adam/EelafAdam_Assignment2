@@ -12,8 +12,6 @@ import '../widgets/incident_card.dart';
 import '../widgets/user_avatar.dart';
 import 'incident_details_screen.dart';
 
-/// Home tab (same design for both roles): greeting, summary cards,
-/// search bar and the most recent reports.
 class HomeTab extends ConsumerStatefulWidget {
   const HomeTab({
     super.key,
@@ -23,7 +21,6 @@ class HomeTab extends ConsumerStatefulWidget {
 
   final AppUser profile;
 
-  /// Opens the Reports / Portal tab with the given filter selected.
   final ValueChanged<ReportFilter> onOpenReports;
 
   @override
@@ -53,7 +50,6 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
         children: [
-          // ---- Greeting ----
           Row(
             children: [
               UserAvatar(role: widget.profile.role, size: 52),
@@ -113,7 +109,6 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     int countFor(ReportFilter filter) =>
         incidents.where((i) => filter.matches(i, now)).length;
 
-    // Two rows of three summary cards. Tapping one opens that list.
     final stats = <_StatInfo>[
       _StatInfo(
         filter: ReportFilter.today,
@@ -140,7 +135,6 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     ];
 
     return [
-      // ---- Overview ----
       _SectionHeader(
         title: 'Overview',
         onSeeAll: () => widget.onOpenReports(ReportFilter.all),
@@ -164,7 +158,6 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       ],
       const SizedBox(height: 24),
 
-      // ---- Search ----
       TextField(
         controller: _searchController,
         onChanged: (value) => setState(() => _query = value),
@@ -185,7 +178,6 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       ),
       const SizedBox(height: 24),
 
-      // ---- Recent reports / search results ----
       _SectionHeader(
         title: isSearching ? 'Results (${results.length})' : 'Recent reports',
         onSeeAll: (isSearching || incidents.isEmpty)
@@ -268,7 +260,6 @@ class _StatInfo {
   final int count;
 }
 
-/// Summary card: a count with its label. Tapping opens the matching list.
 class _StatCard extends StatelessWidget {
   const _StatCard({required this.info, required this.onTap});
 

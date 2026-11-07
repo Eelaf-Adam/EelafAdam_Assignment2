@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_theme.dart';
 
-/// The "Rapport" wordmark: "Rap" in white, "port" in cyan.
 class RapportLogo extends StatelessWidget {
   const RapportLogo({super.key, this.fontSize = 32});
 

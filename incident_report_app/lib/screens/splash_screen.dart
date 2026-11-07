@@ -7,8 +7,6 @@ import 'main_shell.dart';
 import 'role_selection_screen.dart';
 import 'verify_email_screen.dart';
 
-/// First screen: shows the Rapport logo, then sends the user to the
-/// right place depending on whether they are already signed in.
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -26,10 +24,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   Future<void> _goToNextScreen() async {
     await Future.delayed(const Duration(seconds: 2));
 
-    // The widget may have been removed while we were waiting.
     if (!mounted) return;
 
-    // Firebase remembers the last signed-in user on this device.
     final user = ref.read(authServiceProvider).currentUser;
 
     final Widget next;
@@ -41,16 +37,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       next = const MainShell();
     }
 
-    // pushReplacement removes the splash, so "back" doesn't return to it.
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => next),
-    );
+    Navigator.of(context)
+        .pushReplacement(MaterialPageRoute(builder: (_) => next));
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: RapportLogo(fontSize: 40)),
-    );
+    return const Scaffold(body: Center(child: RapportLogo(fontSize: 40)));
   }
 }

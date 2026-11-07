@@ -12,8 +12,7 @@ import '../widgets/filter_pill.dart';
 import '../widgets/incident_card.dart';
 import 'incident_details_screen.dart';
 
-/// The full list of reports with search and filter pills.
-/// Students see this as "My Reports", staff as the "Report Portal".
+/// "My Reports" for students, "Report Portal" for staff.
 class IncidentListTab extends ConsumerStatefulWidget {
   const IncidentListTab({super.key, required this.profile});
 
@@ -103,14 +102,12 @@ class _IncidentListTabState extends ConsumerState<IncidentListTab> {
 
   Widget _buildList(List<Incident> incidents) {
     final filter = ref.watch(reportFilterProvider);
-    final filtered =
-        filterIncidents(incidents, query: _query, filter: filter);
+    final filtered = filterIncidents(incidents, query: _query, filter: filter);
     final now = DateTime.now();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // ---- Filter pills (scroll sideways on small screens) ----
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
@@ -140,8 +137,8 @@ class _IncidentListTabState extends ConsumerState<IncidentListTab> {
                     title: _query.isNotEmpty
                         ? 'No matching reports'
                         : filter == ReportFilter.all
-                            ? 'No reports yet'
-                            : 'No reports in "${filter.label}"',
+                        ? 'No reports yet'
+                        : 'No reports in "${filter.label}"',
                     message: _isStaff
                         ? 'Reports matching this filter will appear here.'
                         : 'Reports you submit will appear here.',

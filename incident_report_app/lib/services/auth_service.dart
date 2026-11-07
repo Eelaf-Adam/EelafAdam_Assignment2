@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/app_user.dart';
 import '../models/user_role.dart';
 
-/// An error with a message that is safe to show to the user.
 class AuthException implements Exception {
   const AuthException(this.message);
   final String message;
@@ -13,8 +12,6 @@ class AuthException implements Exception {
   String toString() => message;
 }
 
-/// All Firebase Authentication and user-profile logic lives here,
-/// so the screens never talk to Firebase directly.
 class AuthService {
   AuthService(this._auth, this._firestore);
 
@@ -24,12 +21,10 @@ class AuthService {
   CollectionReference<Map<String, dynamic>> get _users =>
       _firestore.collection('users');
 
-  /// Emits the signed-in user (or null) whenever the login state changes.
   Stream<User?> authStateChanges() => _auth.authStateChanges();
 
   User? get currentUser => _auth.currentUser;
 
-  /// Creates the account, saves the profile and sends the verification email.
   Future<void> signUp({
     required String fullName,
     required String email,
@@ -57,8 +52,7 @@ class AuthService {
     try {
       await _users.doc(user.uid).set(profile.toMap());
     } catch (_) {
-      // Without a profile the app can't know the user's role, so undo
-      // the account creation instead of leaving a half-made account.
+      // Without a profile there's no role, so roll the account back.
       await user.delete();
       throw const AuthException(
         'Could not save your profile. Please try again.',
@@ -88,16 +82,13 @@ class AuthService {
     }
   }
 
-  /// Refreshes the user from Firebase and returns whether the email
-  /// has been verified (the local copy doesn't update by itself).
   Future<bool> checkEmailVerified() async {
     final user = _auth.currentUser;
     if (user == null) return false;
     await user.reload();
     final verified = _auth.currentUser?.emailVerified ?? false;
 
-    // The login token still says "not verified" until it is refreshed,
-    // and the Firestore rules read the token, so refresh it now.
+    // The rules read email_verified from the token, so refresh it.
     if (verified) await _auth.currentUser?.getIdToken(true);
     return verified;
   }
@@ -112,7 +103,6 @@ class AuthService {
 
   Future<void> signOut() => _auth.signOut();
 
-  /// Loads the profile saved at sign-up, or null if it doesn't exist.
   Future<AppUser?> getUserProfile(String uid) async {
     final doc = await _users.doc(uid).get();
     final data = doc.data();
@@ -120,7 +110,6 @@ class AuthService {
     return AppUser.fromMap(doc.id, data);
   }
 
-  /// Turns Firebase error codes into friendly messages.
   String _messageFor(FirebaseAuthException e) {
     switch (e.code) {
       case 'email-already-in-use':

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// The main cyan button. Shows a spinner and ignores taps while [isLoading].
+/// Shows a spinner and ignores taps while [isLoading].
 class LoadingButton extends StatelessWidget {
   const LoadingButton({
     super.key,

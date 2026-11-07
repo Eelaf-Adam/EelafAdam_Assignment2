@@ -1,20 +1,29 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/app_user.dart';
 import '../models/incident.dart';
 
-/// All Firestore reads and writes for incident reports (the CRUD).
+/// Thrown when a write didn't reach the server in time. Firestore keeps the
+/// change on the device and syncs it once the connection is back.
+class OfflineException implements Exception {
+  const OfflineException({this.code});
+
+  /// Set when a new report was queued, so the user still gets its ID.
+  final String? code;
+}
+
 class IncidentService {
   IncidentService(this._firestore);
 
   final FirebaseFirestore _firestore;
 
+  static const _writeTimeout = Duration(seconds: 15);
+
   CollectionReference<Map<String, dynamic>> get _incidents =>
       _firestore.collection('incidents');
 
-  // ---------- Read ----------
-
-  /// A student's own reports, newest first. Updates live.
   Stream<List<Incident>> watchMyIncidents(String uid) {
     return _incidents
         .where('reporterId', isEqualTo: uid)
@@ -22,12 +31,12 @@ class IncidentService {
         .map(_toSortedList);
   }
 
-  /// Every report (staff only, enforced by security rules), newest first.
+  /// Staff only (enforced by the security rules).
   Stream<List<Incident>> watchAllIncidents() {
     return _incidents.snapshots().map(_toSortedList);
   }
 
-  /// A single report, or null once it has been deleted.
+  /// Emits null once the report is deleted.
   Stream<Incident?> watchIncident(String id) {
     return _incidents.doc(id).snapshots().map((doc) {
       final data = doc.data();
@@ -35,8 +44,8 @@ class IncidentService {
     });
   }
 
-  // Sorting here instead of with orderBy() avoids needing a Firestore
-  // composite index for the "where reporterId + order by date" query.
+  // Sorted here rather than with orderBy() so the student query
+  // doesn't need a composite index.
   List<Incident> _toSortedList(QuerySnapshot<Map<String, dynamic>> snapshot) {
     final list = snapshot.docs
         .map((doc) => Incident.fromMap(doc.id, doc.data()))
@@ -45,9 +54,7 @@ class IncidentService {
     return list;
   }
 
-  // ---------- Create ----------
-
-  /// Saves a new report and returns its short code, e.g. "INC-4F7K2A".
+  /// Returns the short report ID, e.g. "INC-4F7K2A".
   Future<String> createIncident({
     required AppUser reporter,
     required IncidentType type,
@@ -57,42 +64,41 @@ class IncidentService {
     String? otherLocation,
     String? photoUrl,
   }) async {
-    // Create the document reference first so we know its random ID
-    // and can build the short code from it.
     final doc = _incidents.doc();
     final code = 'INC-${doc.id.substring(0, 6).toUpperCase()}';
 
-    await doc.set({
-      'code': code,
-      'type': type.name,
-      'otherType': type == IncidentType.others ? otherType?.trim() : null,
-      'description': description.trim(),
-      'location': location.name,
-      'otherLocation':
-          location == CampusLocation.others ? otherLocation?.trim() : null,
-      'photoUrl': photoUrl,
-      'status': IncidentStatus.pending.name,
-      'reporterId': reporter.uid,
-      'reporterName': reporter.fullName,
-      'reporterEmail': reporter.email,
-      'createdAt': FieldValue.serverTimestamp(),
-      'updatedAt': null,
-      // First timeline step: "Submitted".
-      'history': [
-        StatusUpdate.toNewMap(
-          status: IncidentStatus.pending,
-          byId: reporter.uid,
-          byName: reporter.fullName,
-        ),
-      ],
-    });
+    await _write(
+      doc.set({
+        'code': code,
+        'type': type.name,
+        'otherType': type == IncidentType.others ? otherType?.trim() : null,
+        'description': description.trim(),
+        'location': location.name,
+        'otherLocation': location == CampusLocation.others
+            ? otherLocation?.trim()
+            : null,
+        'photoUrl': photoUrl,
+        'status': IncidentStatus.pending.name,
+        'reporterId': reporter.uid,
+        'reporterName': reporter.fullName,
+        'reporterEmail': reporter.email,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': null,
+        'history': [
+          StatusUpdate.toNewMap(
+            status: IncidentStatus.pending,
+            byId: reporter.uid,
+            byName: reporter.fullName,
+          ),
+        ],
+      }),
+      queuedCode: code,
+    );
 
     return code;
   }
 
-  // ---------- Update ----------
-
-  /// Student edit (only allowed while the report is still pending).
+  /// The rules only allow this while the report is pending.
   Future<void> updateIncident(
     String id, {
     required IncidentType type,
@@ -102,41 +108,53 @@ class IncidentService {
     String? otherLocation,
     String? photoUrl,
   }) {
-    return _incidents.doc(id).update({
-      'type': type.name,
-      'otherType': type == IncidentType.others ? otherType?.trim() : null,
-      'description': description.trim(),
-      'location': location.name,
-      'otherLocation':
-          location == CampusLocation.others ? otherLocation?.trim() : null,
-      'photoUrl': photoUrl,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    return _write(
+      _incidents.doc(id).update({
+        'type': type.name,
+        'otherType': type == IncidentType.others ? otherType?.trim() : null,
+        'description': description.trim(),
+        'location': location.name,
+        'otherLocation': location == CampusLocation.others
+            ? otherLocation?.trim()
+            : null,
+        'photoUrl': photoUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }),
+    );
   }
 
-  /// Staff-only: change the status and/or add a note.
-  /// Each update is added to the report's history for the timeline.
+  /// Staff only. Also appends to the timeline history.
   Future<void> updateStatus(
     String id, {
     required IncidentStatus status,
     required AppUser staff,
     String? note,
   }) {
-    return _incidents.doc(id).update({
-      'status': status.name,
-      'updatedAt': FieldValue.serverTimestamp(),
-      'history': FieldValue.arrayUnion([
-        StatusUpdate.toNewMap(
-          status: status,
-          byId: staff.uid,
-          byName: staff.fullName,
-          note: note,
-        ),
-      ]),
-    });
+    return _write(
+      _incidents.doc(id).update({
+        'status': status.name,
+        'updatedAt': FieldValue.serverTimestamp(),
+        'history': FieldValue.arrayUnion([
+          StatusUpdate.toNewMap(
+            status: status,
+            byId: staff.uid,
+            byName: staff.fullName,
+            note: note,
+          ),
+        ]),
+      }),
+    );
   }
 
-  // ---------- Delete ----------
+  Future<void> deleteIncident(String id) => _write(_incidents.doc(id).delete());
 
-  Future<void> deleteIncident(String id) => _incidents.doc(id).delete();
+  // Offline writes never complete until the device reconnects,
+  // so give up waiting after a while and let the UI explain.
+  Future<void> _write(Future<void> write, {String? queuedCode}) async {
+    try {
+      await write.timeout(_writeTimeout);
+    } on TimeoutException {
+      throw OfflineException(code: queuedCode);
+    }
+  }
 }

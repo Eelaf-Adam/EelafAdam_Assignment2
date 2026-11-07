@@ -12,8 +12,7 @@ import '../widgets/rapport_logo.dart';
 import 'main_shell.dart';
 import 'verify_email_screen.dart';
 
-/// Sign in with email and password. No role picker: the role is
-/// read from the profile saved at sign-up.
+/// No role picker: the role comes from the profile saved at sign-up.
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
 
@@ -46,7 +45,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       );
       if (!mounted) return;
 
-      // Unverified users must confirm their email before using the app.
       final verified = auth.currentUser?.emailVerified ?? false;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
@@ -63,7 +61,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   Future<void> _forgotPassword() async {
-    // Reuse the email typed above instead of asking for it again.
     final email = _emailController.text;
     if (Validators.email(email) != null) {
       showMessage(context, 'Enter your email above first, then tap again.');
@@ -119,9 +116,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   isPassword: true,
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _signIn(),
-                  // Only check it's filled in; Firebase checks if it's right.
-                  validator: (v) =>
-                      (v == null || v.isEmpty) ? 'Please enter your password' : null,
+                  validator: (v) => (v == null || v.isEmpty)
+                      ? 'Please enter your password'
+                      : null,
                 ),
                 Align(
                   alignment: Alignment.centerRight,
@@ -145,7 +142,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       style: TextStyle(color: AppColors.textSecondary),
                     ),
                     TextButton(
-                      // Back to the role screen to choose Student or Staff.
                       onPressed: () => Navigator.of(context).pop(),
                       child: const Text(
                         'Sign up',

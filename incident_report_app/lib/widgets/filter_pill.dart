@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// A rounded tab-like button used for status filters.
-/// Selected: cyan with white text. Not selected: dark grey.
 class FilterPill extends StatelessWidget {
   const FilterPill({
     super.key,

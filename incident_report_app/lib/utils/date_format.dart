@@ -1,6 +1,16 @@
 const _months = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 
 /// e.g. "7 Nov 2026"
@@ -9,8 +19,7 @@ String formatDate(DateTime date) {
   return '${d.day} ${_months[d.month - 1]} ${d.year}';
 }
 
-/// Short relative time, e.g. "Just now", "5 min ago", "2h ago",
-/// "Yesterday", "3 days ago", then the date for anything older.
+/// e.g. "5 min ago", "2h ago", "Yesterday"; the date after a week.
 String timeAgo(DateTime date, {DateTime? now}) {
   final diff = (now ?? DateTime.now()).difference(date);
 

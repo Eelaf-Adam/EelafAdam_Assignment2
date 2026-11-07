@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// Friendly message shown when a list has nothing to show.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,

@@ -1,7 +1,6 @@
 import '../models/user_role.dart';
 
-/// Form checks shared by the sign-up and sign-in screens.
-/// Each returns an error message, or null when the value is fine.
+/// Each returns an error message, or null if the value is valid.
 class Validators {
   Validators._();
 

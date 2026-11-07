@@ -6,8 +6,6 @@ import '../utils/date_format.dart';
 import 'highlighted_text.dart';
 import 'status_chip.dart';
 
-/// One report in a list. Staff also see who reported it.
-/// [highlight] marks the search text inside the card.
 class IncidentCard extends StatelessWidget {
   const IncidentCard({
     super.key,
@@ -56,7 +54,6 @@ class IncidentCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // How long ago it was submitted, e.g. "2h ago".
                         Text(timeAgo(incident.createdAt), style: metaStyle),
                       ],
                     ),
@@ -90,7 +87,6 @@ class IncidentCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Small hint that the card opens the details.
               const Padding(
                 padding: EdgeInsets.only(left: 4),
                 child: Icon(
@@ -107,8 +103,7 @@ class IncidentCard extends StatelessWidget {
   }
 }
 
-/// The report's evidence photo (with a small type badge in the corner),
-/// or just the type icon when there is no photo.
+/// Evidence photo with a type badge, or just the type icon if there's no photo.
 class _Thumbnail extends StatelessWidget {
   const _Thumbnail({required this.incident});
 
@@ -136,17 +131,13 @@ class _Thumbnail extends StatelessWidget {
               width: _size,
               height: _size,
               fit: BoxFit.cover,
-              // If the photo can't load, fall back to the type icon.
               errorBuilder: (_, _, _) =>
                   IncidentTypeIcon(type: incident.type, size: _size),
               loadingBuilder: (context, child, progress) => progress == null
                   ? child
-                  : Container(
-                      color: AppColors.accent.withValues(alpha: 0.15),
-                    ),
+                  : Container(color: AppColors.accent.withValues(alpha: 0.15)),
             ),
           ),
-          // Small type badge so the category is still visible.
           Positioned(
             right: -4,
             bottom: -4,
@@ -166,7 +157,6 @@ class _Thumbnail extends StatelessWidget {
   }
 }
 
-/// The incident-type icon on a soft cyan rounded square.
 class IncidentTypeIcon extends StatelessWidget {
   const IncidentTypeIcon({super.key, required this.type, this.size = 44});
 

@@ -1,7 +1,6 @@
 import '../models/incident.dart';
 
-/// The filters shown as pills on the Reports / Portal tab,
-/// and opened by tapping the summary cards on Home.
+/// Filter pills on the Reports tab, also used by the Home summary cards.
 enum ReportFilter {
   all('All'),
   today('Today'),
@@ -14,7 +13,7 @@ enum ReportFilter {
 
   final String label;
 
-  /// The status this filter keeps, or null for "All" / "Today".
+  /// Null for All and Today.
   final IncidentStatus? status;
 
   static ReportFilter forStatus(IncidentStatus status) =>
@@ -38,9 +37,8 @@ bool isSameDay(DateTime a, DateTime b) {
   return x.year == y.year && x.month == y.month && x.day == y.day;
 }
 
-/// Filters reports by a [filter] and a search [query].
-/// The query matches type, location, description, ID, reporter or status,
-/// ignoring upper/lower case.
+/// Case-insensitive search over type, location, description,
+/// ID, reporter and status.
 List<Incident> filterIncidents(
   List<Incident> incidents, {
   String query = '',

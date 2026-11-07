@@ -13,7 +13,6 @@ import '../widgets/rapport_logo.dart';
 import 'sign_in_screen.dart';
 import 'verify_email_screen.dart';
 
-/// Account creation for the role picked on the previous screen.
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key, required this.role});
 
@@ -41,12 +40,13 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Future<void> _signUp() async {
-    // Run every field's validator; stop if any fails.
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
     try {
-      await ref.read(authServiceProvider).signUp(
+      await ref
+          .read(authServiceProvider)
+          .signUp(
             fullName: _nameController.text,
             email: _emailController.text,
             password: _passwordController.text,
@@ -54,7 +54,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           );
       if (!mounted) return;
 
-      // Clear the whole stack so "back" can't return to the sign-up form.
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const VerifyEmailScreen()),
         (route) => false,

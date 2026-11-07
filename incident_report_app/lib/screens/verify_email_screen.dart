@@ -9,7 +9,6 @@ import '../widgets/loading_button.dart';
 import 'main_shell.dart';
 import 'role_selection_screen.dart';
 
-/// Shown until the user clicks the link in their verification email.
 class VerifyEmailScreen extends ConsumerStatefulWidget {
   const VerifyEmailScreen({super.key});
 
@@ -24,8 +23,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   Future<void> _checkVerified() async {
     setState(() => _isChecking = true);
     try {
-      final verified =
-          await ref.read(authServiceProvider).checkEmailVerified();
+      final verified = await ref.read(authServiceProvider).checkEmailVerified();
       if (!mounted) return;
 
       if (verified) {

@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Colours used across the whole app (based on the Rapport UI inspiration).
 class AppColors {
   AppColors._();
 
-  static const Color background = Color(0xFF00122B); // deep navy
-  static const Color card = Color(0xFF262626); // dark grey cards
-  static const Color accent = Color(0xFF1EB6F0); // cyan / sky blue
+  static const Color background = Color(0xFF00122B);
+  static const Color card = Color(0xFF262626);
+  static const Color accent = Color(0xFF1EB6F0);
   static const Color textPrimary = Colors.white;
-  static const Color textSecondary = Color(0xFFB0B8C4); // soft grey
-  static const Color navBar = Color(0xFF0A1E3A); // slightly lighter navy
-  static const Color danger = Color(0xFFFF5A5F); // delete / sign out
+  static const Color textSecondary = Color(0xFFB0B8C4);
+  static const Color navBar = Color(0xFF0A1E3A);
+  static const Color danger = Color(0xFFFF5A5F);
 }
 
-/// The app-wide theme: dark navy background, cyan accent, Poppins font.
 class AppTheme {
   AppTheme._();
 
@@ -23,7 +21,6 @@ class AppTheme {
 
     return ThemeData(
       brightness: Brightness.dark,
-      // Poppins becomes the default font for every Text in the app.
       fontFamily: fontFamily,
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: ColorScheme.fromSeed(
@@ -37,7 +34,6 @@ class AppTheme {
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
       ),
-      // Text fields: filled dark grey, rounded, cyan outline when focused.
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.card,
@@ -68,7 +64,6 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(foregroundColor: AppColors.accent),
       ),
-      // Bottom navigation: navy bar, cyan for the selected tab.
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.navBar,
         indicatorColor: AppColors.accent.withValues(alpha: 0.18),
@@ -91,9 +86,7 @@ class AppTheme {
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,

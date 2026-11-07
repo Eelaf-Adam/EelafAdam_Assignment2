@@ -5,6 +5,7 @@ import '../models/app_user.dart';
 import '../models/incident.dart';
 import '../models/user_role.dart';
 import '../providers/incident_providers.dart';
+import '../services/incident_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_format.dart';
 import '../utils/snackbar.dart';
@@ -15,9 +16,7 @@ import '../widgets/status_chip.dart';
 import '../widgets/status_timeline.dart';
 import 'report_form_screen.dart';
 
-/// Full details of one report, with role-based actions:
-/// - Student (owner): edit or delete while the report is still Pending.
-/// - Staff: submit a status update with an optional note.
+/// Students can edit or delete their own pending reports; staff update the status.
 class IncidentDetailsScreen extends ConsumerStatefulWidget {
   const IncidentDetailsScreen({
     super.key,
@@ -41,12 +40,13 @@ class _IncidentDetailsScreenState extends ConsumerState<IncidentDetailsScreen> {
   Future<void> _openStatusSheet(Incident incident) async {
     await showModalBottomSheet<void>(
       context: context,
-      isScrollControlled: true, // lets the sheet move up with the keyboard
+      isScrollControlled: true,
       backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => _StatusUpdateSheet(incident: incident, staff: widget.profile),
+      builder: (_) =>
+          _StatusUpdateSheet(incident: incident, staff: widget.profile),
     );
   }
 
@@ -89,6 +89,13 @@ class _IncidentDetailsScreenState extends ConsumerState<IncidentDetailsScreen> {
       if (!mounted) return;
       showMessage(context, 'Report deleted');
       Navigator.of(context).pop();
+    } on OfflineException {
+      if (!mounted) return;
+      showMessage(
+        context,
+        'You\'re offline. The report will be deleted when you reconnect.',
+      );
+      Navigator.of(context).pop();
     } catch (_) {
       if (mounted) {
         setState(() => _isBusy = false);
@@ -104,7 +111,7 @@ class _IncidentDetailsScreenState extends ConsumerState<IncidentDetailsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Incident Report',
+          'Incident Details',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
@@ -134,7 +141,6 @@ class _IncidentDetailsScreenState extends ConsumerState<IncidentDetailsScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
-        // ---- Case file card ----
         _Card(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -195,7 +201,8 @@ class _IncidentDetailsScreenState extends ConsumerState<IncidentDetailsScreen> {
               ),
               _MetaRow(
                 icon: Icons.calendar_today_outlined,
-                text: 'Submitted ${formatDateTime(incident.createdAt)} '
+                text:
+                    'Submitted ${formatDateTime(incident.createdAt)} '
                     '(${timeAgo(incident.createdAt)})',
               ),
               if (incident.updatedAt != null)
@@ -208,7 +215,6 @@ class _IncidentDetailsScreenState extends ConsumerState<IncidentDetailsScreen> {
         ),
         const SizedBox(height: 22),
 
-        // ---- Description ----
         const _SectionTitle('Description'),
         _Card(
           padding: const EdgeInsets.all(16),
@@ -218,7 +224,6 @@ class _IncidentDetailsScreenState extends ConsumerState<IncidentDetailsScreen> {
           ),
         ),
 
-        // ---- Photo ----
         if (incident.photoUrl != null) ...[
           const SizedBox(height: 22),
           const _SectionTitle('Evidence'),
@@ -242,7 +247,6 @@ class _IncidentDetailsScreenState extends ConsumerState<IncidentDetailsScreen> {
         ],
         const SizedBox(height: 22),
 
-        // ---- Tracker ----
         const _SectionTitle('Incident Tracker'),
         _Card(
           padding: const EdgeInsets.all(16),
@@ -250,7 +254,6 @@ class _IncidentDetailsScreenState extends ConsumerState<IncidentDetailsScreen> {
         ),
         const SizedBox(height: 28),
 
-        // ---- Actions ----
         if (_isStaff)
           ElevatedButton.icon(
             onPressed: () => _openStatusSheet(incident),
@@ -316,8 +319,7 @@ class _IncidentDetailsScreenState extends ConsumerState<IncidentDetailsScreen> {
   }
 }
 
-/// Bottom sheet where staff pick a new status, add an optional note,
-/// and submit the update. The note appears on the student's timeline.
+/// The optional note is shown to the student on the timeline.
 class _StatusUpdateSheet extends ConsumerStatefulWidget {
   const _StatusUpdateSheet({required this.incident, required this.staff});
 
@@ -346,7 +348,9 @@ class _StatusUpdateSheetState extends ConsumerState<_StatusUpdateSheet> {
   Future<void> _submit() async {
     setState(() => _isSaving = true);
     try {
-      await ref.read(incidentServiceProvider).updateStatus(
+      await ref
+          .read(incidentServiceProvider)
+          .updateStatus(
             widget.incident.id,
             status: _status,
             staff: widget.staff,
@@ -355,6 +359,13 @@ class _StatusUpdateSheetState extends ConsumerState<_StatusUpdateSheet> {
       if (!mounted) return;
       Navigator.pop(context);
       showMessage(context, 'Update submitted: ${_status.label}');
+    } on OfflineException {
+      if (!mounted) return;
+      Navigator.pop(context);
+      showMessage(
+        context,
+        'You\'re offline. The update will sync when you reconnect.',
+      );
     } catch (_) {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -365,7 +376,6 @@ class _StatusUpdateSheetState extends ConsumerState<_StatusUpdateSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // Keep the sheet above the keyboard.
     final keyboard = MediaQuery.of(context).viewInsets.bottom;
 
     return Padding(
@@ -395,7 +405,6 @@ class _StatusUpdateSheetState extends ConsumerState<_StatusUpdateSheet> {
             style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
           const SizedBox(height: 16),
-          // 2 x 2 grid of status options.
           for (var row = 0; row < IncidentStatus.values.length; row += 2) ...[
             if (row > 0) const SizedBox(height: 10),
             Row(
@@ -406,9 +415,8 @@ class _StatusUpdateSheetState extends ConsumerState<_StatusUpdateSheet> {
                     child: _StatusOption(
                       status: IncidentStatus.values[i],
                       isSelected: _status == IncidentStatus.values[i],
-                      onTap: () => setState(
-                        () => _status = IncidentStatus.values[i],
-                      ),
+                      onTap: () =>
+                          setState(() => _status = IncidentStatus.values[i]),
                     ),
                   ),
                 ],
@@ -423,7 +431,8 @@ class _StatusUpdateSheetState extends ConsumerState<_StatusUpdateSheet> {
             textCapitalization: TextCapitalization.sentences,
             onChanged: (_) => setState(() {}),
             decoration: const InputDecoration(
-              hintText: 'Add a note for the student (optional)\n'
+              hintText:
+                  'Add a note for the student (optional)\n'
                   'e.g. Plumber assigned, coming tomorrow morning',
               filled: true,
               fillColor: AppColors.background,
@@ -433,7 +442,6 @@ class _StatusUpdateSheetState extends ConsumerState<_StatusUpdateSheet> {
           LoadingButton(
             label: 'Submit update',
             isLoading: _isSaving,
-            // Disabled until the status changes or a note is written.
             onPressed: _hasChange ? _submit : null,
           ),
         ],

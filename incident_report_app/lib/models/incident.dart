@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// What kind of problem is being reported. Each has a label and an icon.
 enum IncidentType {
   facilities('Facilities', Icons.apartment),
   water('Water', Icons.water_drop),
@@ -19,7 +18,6 @@ enum IncidentType {
   final IconData icon;
 }
 
-/// Where on campus the incident happened.
 enum CampusLocation {
   socialCommons('Social Commons'),
   enterpriseCommons('Enterprise Commons'),
@@ -33,7 +31,7 @@ enum CampusLocation {
   final String label;
 }
 
-/// The progress of a report, in order. Only staff can change it.
+/// In order. Only staff can change it.
 enum IncidentStatus {
   pending(
     'Pending',
@@ -76,12 +74,11 @@ enum IncidentStatus {
   final Color color;
   final IconData icon;
 
-  /// Wording used on the incident tracker timeline.
   final String timelineTitle;
   final String timelineSubtitle;
 }
 
-/// One entry in a report's history: a status change and/or a staff note.
+/// A status change and/or staff note shown on the timeline.
 class StatusUpdate {
   const StatusUpdate({
     required this.status,
@@ -110,8 +107,7 @@ class StatusUpdate {
     );
   }
 
-  /// Uses the phone's time (Timestamp.now) because Firestore does not
-  /// allow server timestamps inside lists.
+  /// Server timestamps aren't allowed inside arrays, so device time is used.
   static Map<String, dynamic> toNewMap({
     required IncidentStatus status,
     required String byId,
@@ -129,7 +125,7 @@ class StatusUpdate {
   }
 }
 
-/// One incident report, stored in Firestore at `incidents/{id}`.
+/// Stored in Firestore at `incidents/{id}`.
 class Incident {
   const Incident({
     required this.id,
@@ -155,12 +151,12 @@ class Incident {
   final String code;
   final IncidentType type;
 
-  /// Filled in only when [type] is "Others".
+  /// Only used when [type] is Others.
   final String? otherType;
   final String description;
   final CampusLocation location;
 
-  /// Filled in only when [location] is "Others".
+  /// Only used when [location] is Others.
   final String? otherLocation;
   final String? photoUrl;
   final IncidentStatus status;
@@ -170,27 +166,28 @@ class Incident {
   final DateTime createdAt;
   final DateTime? updatedAt;
 
-  /// Status changes and staff notes, oldest first (for the timeline).
+  /// Oldest first.
   final List<StatusUpdate> history;
 
-  /// The typed-in text for "Others", otherwise the normal label.
-  String get typeLabel => _labelOrOther(type.label, type == IncidentType.others, otherType);
+  String get typeLabel =>
+      _labelOrOther(type.label, type == IncidentType.others, otherType);
 
-  String get locationLabel =>
-      _labelOrOther(location.label, location == CampusLocation.others, otherLocation);
+  String get locationLabel => _labelOrOther(
+    location.label,
+    location == CampusLocation.others,
+    otherLocation,
+  );
 
-  /// Used as the heading, since reports have no title field.
+  /// Reports have no title field, so type + location is used instead.
   String get title => '$typeLabel · $locationLabel';
 
-  /// A small square version of the photo for lists. Cloudinary resizes
-  /// it on their server when "c_fill,w_200,h_200" is added to the URL.
+  /// Cloudinary resizes the image on the fly from the URL parameters.
   String? get thumbnailUrl {
     final url = photoUrl;
     if (url == null) return null;
     return url.replaceFirst('/upload/', '/upload/c_fill,w_200,h_200,q_auto/');
   }
 
-  /// Students can only edit or delete a report that staff haven't started.
   bool get isEditable => status == IncidentStatus.pending;
 
   static String _labelOrOther(String label, bool isOther, String? custom) {
@@ -222,8 +219,7 @@ class Incident {
       reporterId: data['reporterId'] as String? ?? '',
       reporterName: data['reporterName'] as String? ?? 'Unknown',
       reporterEmail: data['reporterEmail'] as String? ?? '',
-      // A brand-new report has no server time yet while it is being saved,
-      // so fall back to "now" for that moment.
+      // Null until the server confirms a new write.
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
       history: [
@@ -233,8 +229,7 @@ class Incident {
     );
   }
 
-  /// Finds an enum value by its saved name, or uses [fallback]
-  /// if the data is missing or unknown (so old data never crashes the app).
+  /// Falls back instead of crashing on missing or unknown values.
   static T _byName<T extends Enum>(List<T> values, Object? name, T fallback) {
     for (final value in values) {
       if (value.name == name) return value;

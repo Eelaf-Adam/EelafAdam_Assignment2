@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// A styled text field used on all forms.
-/// Set [isPassword] to hide the text and show an eye toggle.
+/// [isPassword] hides the text and adds a show/hide toggle.
 class AppTextField extends StatefulWidget {
   const AppTextField({
     super.key,

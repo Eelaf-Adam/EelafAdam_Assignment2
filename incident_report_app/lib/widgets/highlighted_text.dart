@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// Text where every match of [highlight] is marked in cyan,
-/// so users can see why a report matched their search.
+/// Marks every match of [highlight] so users can see why a result matched.
 class HighlightedText extends StatelessWidget {
   const HighlightedText(
     this.text, {
@@ -30,7 +29,6 @@ class HighlightedText extends StatelessWidget {
       );
     }
 
-    // Split the text into normal and matching pieces.
     final spans = <TextSpan>[];
     final lower = text.toLowerCase();
     var start = 0;

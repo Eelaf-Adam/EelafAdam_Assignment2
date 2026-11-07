@@ -9,7 +9,6 @@ import '../utils/date_format.dart';
 import '../utils/sign_out.dart';
 import '../widgets/user_avatar.dart';
 
-/// Profile tab: who is signed in, a few account details, and sign out.
 class ProfileTab extends ConsumerWidget {
   const ProfileTab({super.key, required this.profile});
 

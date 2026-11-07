@@ -8,14 +8,14 @@ import '../models/app_user.dart';
 import '../models/incident.dart';
 import '../providers/incident_providers.dart';
 import '../services/cloudinary_service.dart';
+import '../services/incident_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/snackbar.dart';
 import '../widgets/app_text_field.dart';
 import '../widgets/dashed_border_box.dart';
 import '../widgets/loading_button.dart';
 
-/// "Report an Incident" form. Pass [existing] to edit a report instead.
-/// Returns true (via Navigator.pop) when the report was saved.
+/// Pass [existing] to edit. Pops with true once saved.
 class ReportFormScreen extends ConsumerStatefulWidget {
   const ReportFormScreen({super.key, required this.profile, this.existing});
 
@@ -36,10 +36,9 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
   CampusLocation? _location;
   bool _isSaving = false;
 
-  /// A newly picked photo (not uploaded until the form is submitted).
+  /// Only uploaded when the form is submitted.
   File? _newPhoto;
 
-  /// The photo already saved on the report (when editing).
   String? _existingPhotoUrl;
 
   bool get _isEditing => widget.existing != null;
@@ -47,17 +46,19 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
   @override
   void initState() {
     super.initState();
-    // When editing, start with the report's current values.
     final existing = widget.existing;
     _type = existing?.type;
     _location = existing?.location;
     _existingPhotoUrl = existing?.photoUrl;
-    _descriptionController =
-        TextEditingController(text: existing?.description ?? '');
-    _otherTypeController =
-        TextEditingController(text: existing?.otherType ?? '');
-    _otherLocationController =
-        TextEditingController(text: existing?.otherLocation ?? '');
+    _descriptionController = TextEditingController(
+      text: existing?.description ?? '',
+    );
+    _otherTypeController = TextEditingController(
+      text: existing?.otherType ?? '',
+    );
+    _otherLocationController = TextEditingController(
+      text: existing?.otherLocation ?? '',
+    );
   }
 
   @override
@@ -69,7 +70,6 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
   }
 
   Future<void> _pickPhoto() async {
-    // Ask: camera or gallery?
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       backgroundColor: AppColors.card,
@@ -106,7 +106,7 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
     if (source == null) return;
 
     try {
-      // Resize + compress so uploads are quick on mobile data.
+      // Smaller files upload faster on mobile data.
       final picked = await ImagePicker().pickImage(
         source: source,
         maxWidth: 1600,
@@ -136,11 +136,11 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
     final service = ref.read(incidentServiceProvider);
 
     try {
-      // Upload the new photo first (if any), then save its URL.
       var photoUrl = _existingPhotoUrl;
       if (_newPhoto != null) {
-        photoUrl =
-            await ref.read(cloudinaryServiceProvider).uploadImage(_newPhoto!);
+        photoUrl = await ref
+            .read(cloudinaryServiceProvider)
+            .uploadImage(_newPhoto!);
       }
 
       if (_isEditing) {
@@ -170,6 +170,17 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
         await _showSubmittedDialog(code);
         if (mounted) Navigator.of(context).pop(true);
       }
+    } on OfflineException catch (e) {
+      if (!mounted) return;
+      if (e.code != null) {
+        await _showSubmittedDialog(e.code!, offline: true);
+      } else {
+        showMessage(
+          context,
+          'You\'re offline. Changes will sync when you reconnect.',
+        );
+      }
+      if (mounted) Navigator.of(context).pop(true);
     } on CloudinaryException catch (e) {
       if (mounted) showMessage(context, e.message);
     } catch (_) {
@@ -181,17 +192,22 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
     }
   }
 
-  Future<void> _showSubmittedDialog(String code) {
+  Future<void> _showSubmittedDialog(String code, {bool offline = false}) {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        icon: const Icon(
-          Icons.check_circle,
-          color: Color(0xFF34C759),
+        icon: Icon(
+          offline ? Icons.cloud_off : Icons.check_circle,
+          color: offline
+              ? IncidentStatus.pending.color
+              : const Color(0xFF34C759),
           size: 56,
         ),
-        title: const Text('Report submitted', textAlign: TextAlign.center),
+        title: Text(
+          offline ? 'Saved offline' : 'Report submitted',
+          textAlign: TextAlign.center,
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -210,10 +226,13 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            const Text(
-              'Use it to track the progress of your report.',
+            Text(
+              offline
+                  ? 'You\'re offline. The report will be sent automatically '
+                        'when you reconnect.'
+                  : 'Use it to track the progress of your report.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary),
+              style: const TextStyle(color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -247,7 +266,6 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ---- Incident type ----
                 const _FieldLabel('Incident Type'),
                 DropdownButtonFormField<IncidentType>(
                   initialValue: _type,
@@ -285,7 +303,6 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
                 ],
                 const SizedBox(height: 22),
 
-                // ---- Description ----
                 const _FieldLabel('Incident Description'),
                 TextFormField(
                   controller: _descriptionController,
@@ -293,7 +310,8 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
                   maxLines: 6,
                   textCapitalization: TextCapitalization.sentences,
                   decoration: const InputDecoration(
-                    hintText: 'Describe what happened, where exactly, '
+                    hintText:
+                        'Describe what happened, where exactly, '
                         'and any safety concerns...',
                   ),
                   validator: (v) {
@@ -308,7 +326,6 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
                 ),
                 const SizedBox(height: 22),
 
-                // ---- Location ----
                 const _FieldLabel('Location'),
                 DropdownButtonFormField<CampusLocation>(
                   initialValue: _location,
@@ -347,7 +364,6 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
                 ],
                 const SizedBox(height: 22),
 
-                // ---- Evidence ----
                 const _FieldLabel('Attach Evidence (optional)'),
                 if (_newPhoto != null || _existingPhotoUrl != null)
                   _PhotoPreview(
@@ -407,7 +423,6 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
   }
 }
 
-/// The chosen photo with "Change" and remove (✕) buttons on top.
 class _PhotoPreview extends StatelessWidget {
   const _PhotoPreview({
     required this.image,
@@ -478,7 +493,6 @@ class _CircleButton extends StatelessWidget {
   }
 }
 
-/// Bold label above each form field (like the design example).
 class _FieldLabel extends StatelessWidget {
   const _FieldLabel(this.text);
 

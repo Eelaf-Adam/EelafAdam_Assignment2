@@ -16,10 +16,10 @@ final cloudinaryServiceProvider = Provider<CloudinaryService>((ref) {
   return CloudinaryService();
 });
 
-/// The reports the signed-in user is allowed to see:
-/// staff see every report, students see only their own.
-final visibleIncidentsProvider =
-    StreamProvider.autoDispose<List<Incident>>((ref) {
+/// Staff see every report, students only their own.
+final visibleIncidentsProvider = StreamProvider.autoDispose<List<Incident>>((
+  ref,
+) {
   final profile = ref.watch(currentUserProfileProvider).value;
   if (profile == null) return const Stream.empty();
 
@@ -29,8 +29,7 @@ final visibleIncidentsProvider =
       : service.watchMyIncidents(profile.uid);
 });
 
-/// The filter selected on the Reports / Portal tab. Kept in a provider so
-/// tapping a summary card on Home can open that tab already filtered.
+/// Shared so Home can open the Reports tab with a filter already selected.
 class ReportFilterNotifier extends Notifier<ReportFilter> {
   @override
   ReportFilter build() => ReportFilter.all;
@@ -40,12 +39,12 @@ class ReportFilterNotifier extends Notifier<ReportFilter> {
 
 final reportFilterProvider =
     NotifierProvider.autoDispose<ReportFilterNotifier, ReportFilter>(
-  ReportFilterNotifier.new,
-);
+      ReportFilterNotifier.new,
+    );
 
-/// One report by its Firestore ID, updating live (e.g. when staff
-/// change its status while a student is looking at it).
-final incidentProvider =
-    StreamProvider.autoDispose.family<Incident?, String>((ref, id) {
+final incidentProvider = StreamProvider.autoDispose.family<Incident?, String>((
+  ref,
+  id,
+) {
   return ref.watch(incidentServiceProvider).watchIncident(id);
 });

@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'user_role.dart';
 
-/// A user's profile as stored in Firestore at `users/{uid}`.
+/// Stored in Firestore at `users/{uid}`.
 class AppUser {
   const AppUser({
     required this.uid,
@@ -18,20 +18,17 @@ class AppUser {
   final UserRole role;
   final DateTime? createdAt;
 
-  /// Builds an AppUser from a Firestore document.
   factory AppUser.fromMap(String uid, Map<String, dynamic> data) {
     return AppUser(
       uid: uid,
       fullName: data['fullName'] as String? ?? '',
       email: data['email'] as String? ?? '',
-      // Stored as 'student' or 'staff'.
       role: UserRole.values.byName(data['role'] as String),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
     );
   }
 
-  /// Converts the profile to a map for saving in Firestore.
-  /// createdAt is set by the server so every user gets a reliable time.
+  /// createdAt is set by the server clock.
   Map<String, dynamic> toMap() {
     return {
       'fullName': fullName,

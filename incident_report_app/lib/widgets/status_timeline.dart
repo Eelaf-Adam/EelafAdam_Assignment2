@@ -4,9 +4,7 @@ import '../models/incident.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_format.dart';
 
-/// The incident tracker: one step per status, from Submitted to Resolved.
-/// Completed steps are green with a tick; later steps are grey circles.
-/// Staff notes appear under the step they were added to.
+/// One step per status. Staff notes appear under the step they belong to.
 class StatusTimeline extends StatelessWidget {
   const StatusTimeline({super.key, required this.incident});
 
@@ -28,13 +26,11 @@ class StatusTimeline extends StatelessWidget {
             isDone: i <= currentIndex,
             isCurrent: i == currentIndex,
             isLast: i == steps.length - 1,
-            // The line below this step is green if the next step is done.
             lineIsDone: i < currentIndex,
             updates: incident.history
                 .where((u) => u.status == steps[i])
                 .toList(),
-            // "Submitted" always shows the real submission time, even if
-            // staff later moved the report back to Pending.
+            // Real submission time, even if later moved back to Pending.
             fixedTime: i == 0 ? incident.createdAt : null,
             doneColor: _done,
             todoColor: _todo,
@@ -69,16 +65,14 @@ class _TimelineStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Otherwise use the latest time the report reached this step.
     final time = fixedTime ?? (updates.isNotEmpty ? updates.last.at : null);
     final notes = updates.where((u) => u.hasNote).toList();
 
-    // IntrinsicHeight lets the connecting line stretch to the text height.
+    // Lets the connecting line stretch to the height of the text.
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ---- Dot + line ----
           SizedBox(
             width: 28,
             child: Column(
@@ -110,7 +104,6 @@ class _TimelineStep extends StatelessWidget {
           ),
           const SizedBox(width: 12),
 
-          // ---- Text ----
           Expanded(
             child: Padding(
               padding: EdgeInsets.only(bottom: isLast ? 0 : 20),
@@ -123,8 +116,9 @@ class _TimelineStep extends StatelessWidget {
                         child: Text(
                           status.timelineTitle,
                           style: TextStyle(
-                            fontWeight:
-                                isCurrent ? FontWeight.w700 : FontWeight.w600,
+                            fontWeight: isCurrent
+                                ? FontWeight.w700
+                                : FontWeight.w600,
                             color: isDone
                                 ? AppColors.textPrimary
                                 : AppColors.textSecondary,
@@ -163,7 +157,6 @@ class _TimelineStep extends StatelessWidget {
   }
 }
 
-/// A staff note shown under a timeline step.
 class _NoteBubble extends StatelessWidget {
   const _NoteBubble({required this.update});
 

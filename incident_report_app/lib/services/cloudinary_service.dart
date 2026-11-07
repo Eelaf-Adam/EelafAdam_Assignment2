@@ -3,11 +3,8 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-/// Uploads photos to Cloudinary and returns their public URL.
-///
-/// Uses an *unsigned* upload preset, so no secret key is stored in the app.
-/// (Firebase Storage needs the paid Blaze plan, so Cloudinary's free tier
-/// is used instead. Only the returned URL is saved in Firestore.)
+/// Uses an unsigned preset, so no API secret is stored in the app.
+/// Chosen over Firebase Storage, which requires the paid Blaze plan.
 class CloudinaryService {
   CloudinaryService({http.Client? client}) : _client = client ?? http.Client();
 
@@ -29,8 +26,9 @@ class CloudinaryService {
 
     final http.Response response;
     try {
-      final streamed =
-          await _client.send(request).timeout(const Duration(seconds: 60));
+      final streamed = await _client
+          .send(request)
+          .timeout(const Duration(seconds: 60));
       response = await http.Response.fromStream(streamed);
     } on SocketException {
       throw const CloudinaryException(
@@ -48,7 +46,6 @@ class CloudinaryService {
       );
     }
 
-    // secure_url is the https link to the uploaded image.
     return body['secure_url'] as String;
   }
 }

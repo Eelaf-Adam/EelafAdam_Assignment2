@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../models/incident.dart';
 
-/// A coloured pill for a report's status (amber / cyan / green).
 class StatusChip extends StatelessWidget {
   const StatusChip({super.key, required this.status});
 

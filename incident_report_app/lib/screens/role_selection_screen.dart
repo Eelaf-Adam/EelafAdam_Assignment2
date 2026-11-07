@@ -7,8 +7,6 @@ import '../widgets/rapport_logo.dart';
 import 'sign_in_screen.dart';
 import 'sign_up_screen.dart';
 
-/// Lets a new user pick Student or Staff before signing up.
-/// Existing users skip this and tap "Sign in" at the bottom.
 class RoleSelectionScreen extends StatefulWidget {
   const RoleSelectionScreen({super.key});
 
@@ -17,7 +15,6 @@ class RoleSelectionScreen extends StatefulWidget {
 }
 
 class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
-  // Nothing is selected until the user taps a card.
   UserRole? _selectedRole;
 
   void _continue() {
@@ -27,9 +24,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   }
 
   void _openSignIn() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const SignInScreen()),
-    );
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const SignInScreen()));
   }
 
   @override
@@ -67,7 +63,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               Row(
                 children: [
                   for (final role in UserRole.values) ...[
-                    if (role != UserRole.values.first) const SizedBox(width: 16),
+                    if (role != UserRole.values.first)
+                      const SizedBox(width: 16),
                     Expanded(
                       child: _RoleCard(
                         role: role,
@@ -80,7 +77,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               ),
               const Spacer(),
               ElevatedButton(
-                // Disabled (null) until a role is picked.
                 onPressed: _selectedRole == null ? null : _continue,
                 child: const Text('Continue'),
               ),
@@ -112,7 +108,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   }
 }
 
-/// One selectable card: avatar in a cyan circle with the role name below.
 class _RoleCard extends StatelessWidget {
   const _RoleCard({
     required this.role,
@@ -134,7 +129,6 @@ class _RoleCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(16),
-          // Cyan border shows which card is selected.
           border: Border.all(
             color: isSelected ? AppColors.accent : Colors.transparent,
             width: 2,

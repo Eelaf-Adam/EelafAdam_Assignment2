@@ -1,5 +1,4 @@
-/// The two kinds of users in the app.
-/// Each role is tied to an ALU email domain, which is checked at sign-up.
+/// Each role is tied to the ALU email domain checked at sign-up.
 enum UserRole {
   student(
     label: 'Student',

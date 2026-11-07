@@ -13,10 +13,7 @@ import 'incident_list_tab.dart';
 import 'profile_tab.dart';
 import 'report_form_screen.dart';
 
-/// The signed-in part of the app: tab pages + the bottom navigation bar.
-///
-/// Student tabs: Home · Reports · Add · Profile
-/// Staff tabs:   Home · Portal · Profile
+/// Students: Home, Reports, Add, Profile. Staff: Home, Portal, Profile.
 class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
 
@@ -25,10 +22,9 @@ class MainShell extends ConsumerStatefulWidget {
 }
 
 class _MainShellState extends ConsumerState<MainShell> {
-  /// Which page is showing: 0 = Home, 1 = Reports/Portal, 2 = Profile.
+  // 0 = Home, 1 = Reports/Portal, 2 = Profile
   int _pageIndex = 0;
 
-  /// Switches to the Reports / Portal tab with [filter] selected.
   void _openReports([ReportFilter filter = ReportFilter.all]) {
     ref.read(reportFilterProvider.notifier).select(filter);
     setState(() => _pageIndex = 1);
@@ -38,24 +34,20 @@ class _MainShellState extends ConsumerState<MainShell> {
     final submitted = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => ReportFormScreen(profile: profile)),
     );
-    // After a successful submit, show the student their reports.
     if (submitted == true && mounted) _openReports();
   }
 
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(currentUserProfileProvider);
-    // Keep the selected filter alive while signed in, even when the
-    // Reports tab rebuilds.
+    // Keeps the selected filter alive while signed in.
     ref.watch(reportFilterProvider);
 
     return profileAsync.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, _) => _ProfileProblem(
-        message: 'Could not load your profile.\n$error',
-      ),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, _) =>
+          _ProfileProblem(message: 'Could not load your profile.\n$error'),
       data: (profile) {
         if (profile == null) {
           return const _ProfileProblem(
@@ -76,8 +68,8 @@ class _MainShellState extends ConsumerState<MainShell> {
       ProfileTab(profile: profile),
     ];
 
-    // Students have an extra "Add" button in position 2 that opens the
-    // form instead of switching page, so the bar and page indexes differ.
+    // For students "Add" opens the form rather than a page,
+    // so the bar and page indexes differ.
     final destinations = <NavigationDestination>[
       const NavigationDestination(
         icon: Icon(Icons.home_outlined),
@@ -95,11 +87,7 @@ class _MainShellState extends ConsumerState<MainShell> {
               selectedIcon: Icon(Icons.description),
               label: 'Reports',
             ),
-      if (!isStaff)
-        const NavigationDestination(
-          icon: _AddIcon(),
-          label: 'Add',
-        ),
+      if (!isStaff) const NavigationDestination(icon: _AddIcon(), label: 'Add'),
       const NavigationDestination(
         icon: Icon(Icons.person_outline),
         selectedIcon: Icon(Icons.person),
@@ -107,12 +95,9 @@ class _MainShellState extends ConsumerState<MainShell> {
       ),
     ];
 
-    final selectedBarIndex =
-        (!isStaff && _pageIndex == 2) ? 3 : _pageIndex;
+    final selectedBarIndex = (!isStaff && _pageIndex == 2) ? 3 : _pageIndex;
 
     return Scaffold(
-      // IndexedStack keeps each tab's state (scroll, search text)
-      // when switching between tabs.
       body: IndexedStack(index: _pageIndex, children: pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedBarIndex,
@@ -131,7 +116,6 @@ class _MainShellState extends ConsumerState<MainShell> {
   }
 }
 
-/// The highlighted cyan "+" button in the student's bottom bar.
 class _AddIcon extends StatelessWidget {
   const _AddIcon();
 
@@ -148,7 +132,6 @@ class _AddIcon extends StatelessWidget {
   }
 }
 
-/// Shown if the user's profile can't be loaded, with a way out.
 class _ProfileProblem extends ConsumerWidget {
   const _ProfileProblem({required this.message});
 
