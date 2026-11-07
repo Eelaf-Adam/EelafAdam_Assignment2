@@ -94,7 +94,12 @@ class AuthService {
     final user = _auth.currentUser;
     if (user == null) return false;
     await user.reload();
-    return _auth.currentUser?.emailVerified ?? false;
+    final verified = _auth.currentUser?.emailVerified ?? false;
+
+    // The login token still says "not verified" until it is refreshed,
+    // and the Firestore rules read the token, so refresh it now.
+    if (verified) await _auth.currentUser?.getIdToken(true);
+    return verified;
   }
 
   Future<void> sendPasswordReset(String email) async {

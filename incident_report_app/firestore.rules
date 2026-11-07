@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers ----------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // The role saved in the user's own profile ('student' or 'staff').
+    function role() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isStaff() {
+      return isSignedIn() && role() == 'staff';
+    }
+
+    function isStudent() {
+      return isSignedIn() && role() == 'student';
+    }
+
+    // Which fields an update is trying to change.
+    function changedFields() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // ---------- User profiles ----------
+
+    // A user can only read their own profile.
+    // They can create it once, and the role must match their email domain.
+    // Nobody can change their own role from the app (only an admin in the console).
+    match /users/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && (
+          (request.resource.data.role == 'student'
+            && request.auth.token.email.lower().matches('.*@alustudent[.]com$'))
+          ||
+          (request.resource.data.role == 'staff'
+            && request.auth.token.email.lower().matches('.*@alueducation[.]com$'))
+        );
+
+      allow update, delete: if false;
+    }
+
+    // ---------- Incident reports ----------
+
+    match /incidents/{incidentId} {
+
+      // Staff can read every report; students only their own.
+      allow read: if isStaff()
+        || (isSignedIn() && resource.data.reporterId == request.auth.uid);
+
+      // Only verified students can report, only as themselves,
+      // and every new report starts as 'pending'.
+      allow create: if isStudent()
+        && request.auth.token.email_verified == true
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.status == 'pending';
+
+      allow update: if
+        // Staff may change only the status and add to the history
+        // (status updates + notes shown on the student's timeline).
+        (isStaff() && changedFields().hasOnly(['status', 'updatedAt', 'history']))
+        ||
+        // The student who reported it may edit the details,
+        // but only while it is still pending (not the status or owner).
+        (isSignedIn()
+          && resource.data.reporterId == request.auth.uid
+          && resource.data.status == 'pending'
+          && changedFields().hasOnly([
+               'type', 'otherType', 'description',
+               'location', 'otherLocation', 'photoUrl', 'updatedAt'
+             ]));
+
+      // The student who reported it may delete it while it is still pending.
+      allow delete: if isSignedIn()
+        && resource.data.reporterId == request.auth.uid
+        && resource.data.status == 'pending';
+    }
+
+    // Everything else is blocked.
+  }
+}

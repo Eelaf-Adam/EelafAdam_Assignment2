@@ -6,7 +6,7 @@ import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/snackbar.dart';
 import '../widgets/loading_button.dart';
-import 'home_screen.dart';
+import 'main_shell.dart';
 import 'role_selection_screen.dart';
 
 /// Shown until the user clicks the link in their verification email.
@@ -30,7 +30,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
 
       if (verified) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(builder: (_) => const MainShell()),
           (route) => false,
         );
       } else {

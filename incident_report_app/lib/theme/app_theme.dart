@@ -10,6 +10,8 @@ class AppColors {
   static const Color accent = Color(0xFF1EB6F0); // cyan / sky blue
   static const Color textPrimary = Colors.white;
   static const Color textSecondary = Color(0xFFB0B8C4); // soft grey
+  static const Color navBar = Color(0xFF0A1E3A); // slightly lighter navy
+  static const Color danger = Color(0xFFFF5A5F); // delete / sign out
 }
 
 /// The app-wide theme: dark navy background, cyan accent, Poppins font.
@@ -17,10 +19,12 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData get dark {
+    final fontFamily = GoogleFonts.poppins().fontFamily;
+
     return ThemeData(
       brightness: Brightness.dark,
       // Poppins becomes the default font for every Text in the app.
-      fontFamily: GoogleFonts.poppins().fontFamily,
+      fontFamily: fontFamily,
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.accent,
@@ -63,6 +67,33 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(foregroundColor: AppColors.accent),
+      ),
+      // Bottom navigation: navy bar, cyan for the selected tab.
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: AppColors.navBar,
+        indicatorColor: AppColors.accent.withValues(alpha: 0.18),
+        height: 68,
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            color: selected ? AppColors.accent : AppColors.textSecondary,
+          );
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return TextStyle(
+            fontFamily: fontFamily,
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+            color: selected ? AppColors.accent : AppColors.textSecondary,
+          );
+        }),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
       ),
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/auth_providers.dart';
 import '../widgets/rapport_logo.dart';
-import 'home_screen.dart';
+import 'main_shell.dart';
 import 'role_selection_screen.dart';
 import 'verify_email_screen.dart';
 
@@ -38,7 +38,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     } else if (!user.emailVerified) {
       next = const VerifyEmailScreen();
     } else {
-      next = const HomeScreen();
+      next = const MainShell();
     }
 
     // pushReplacement removes the splash, so "back" doesn't return to it.

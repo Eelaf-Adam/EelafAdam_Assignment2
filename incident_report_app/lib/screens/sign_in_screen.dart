@@ -9,7 +9,7 @@ import '../utils/validators.dart';
 import '../widgets/app_text_field.dart';
 import '../widgets/loading_button.dart';
 import '../widgets/rapport_logo.dart';
-import 'home_screen.dart';
+import 'main_shell.dart';
 import 'verify_email_screen.dart';
 
 /// Sign in with email and password. No role picker: the role is
@@ -51,7 +51,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (_) =>
-              verified ? const HomeScreen() : const VerifyEmailScreen(),
+              verified ? const MainShell() : const VerifyEmailScreen(),
         ),
         (route) => false,
       );
