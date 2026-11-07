@@ -201,4 +201,4 @@ flutter test
 
 - **Unit tests:** email/password validation, role-to-domain rules, search and filters, timeline history parsing, relative time formatting
 - **Widget tests:** report form validation and the "Others" field, loading button, password visibility toggle, search highlighting, report cards, incident tracker timeline
-- **Manual testing** on a physical Android phone (Samsung Galaxy S22 Ultra) for the full student and staff workflows, including offline behaviour
+- **Manual testing** on a physical Android phone for the full student and staff workflows, including offline behaviour
