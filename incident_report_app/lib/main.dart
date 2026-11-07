@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'firebase_options.dart';
+import 'screens/splash_screen.dart';
+import 'theme/app_theme.dart';
 
 Future<void> main() async {
   // Needed before calling any plugin code (like Firebase) in main().
@@ -14,28 +16,19 @@ Future<void> main() async {
   );
 
   // ProviderScope stores the state of all Riverpod providers in the app.
-  runApp(const ProviderScope(child: IncidentReportApp()));
+  runApp(const ProviderScope(child: RapportApp()));
 }
 
-class IncidentReportApp extends StatelessWidget {
-  const IncidentReportApp({super.key});
+class RapportApp extends StatelessWidget {
+  const RapportApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Campus Incident Reports',
+      title: 'Rapport',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-      ),
-      // Temporary screen to confirm Firebase starts without errors.
-      // This will be replaced by the login screen in the next step.
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Campus Incident Reports')),
-        body: Center(
-          child: Text('Firebase connected to: ${Firebase.app().options.projectId}'),
-        ),
-      ),
+      theme: AppTheme.dark,
+      home: const SplashScreen(),
     );
   }
 }
