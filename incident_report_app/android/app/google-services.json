@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1016547007538",
+    "project_id": "incident-report-app-380f9",
+    "storage_bucket": "incident-report-app-380f9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1016547007538:android:4f728dce671a6a652db02b",
+        "android_client_info": {
+          "package_name": "com.example.incident_report_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdeUQnz4hA2f6jStsyaEiBRzk2p7h0NFE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
