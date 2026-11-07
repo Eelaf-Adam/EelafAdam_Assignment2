@@ -160,16 +160,26 @@ void main() {
     final now = DateTime(2026, 11, 7, 15, 0);
 
     test('formats recent times', () {
-      expect(timeAgo(now.subtract(const Duration(seconds: 20)), now: now),
-          'Just now');
-      expect(timeAgo(now.subtract(const Duration(minutes: 5)), now: now),
-          '5 min ago');
-      expect(timeAgo(now.subtract(const Duration(hours: 2)), now: now),
-          '2h ago');
-      expect(timeAgo(now.subtract(const Duration(days: 1)), now: now),
-          'Yesterday');
-      expect(timeAgo(now.subtract(const Duration(days: 3)), now: now),
-          '3 days ago');
+      expect(
+        timeAgo(now.subtract(const Duration(seconds: 20)), now: now),
+        'Just now',
+      );
+      expect(
+        timeAgo(now.subtract(const Duration(minutes: 5)), now: now),
+        '5 min ago',
+      );
+      expect(
+        timeAgo(now.subtract(const Duration(hours: 2)), now: now),
+        '2h ago',
+      );
+      expect(
+        timeAgo(now.subtract(const Duration(days: 1)), now: now),
+        'Yesterday',
+      );
+      expect(
+        timeAgo(now.subtract(const Duration(days: 3)), now: now),
+        '3 days ago',
+      );
     });
 
     test('shows the date for anything older than a week', () {
