@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/user_role.dart';
 import '../theme/app_theme.dart';
 import '../widgets/rapport_logo.dart';
+import 'sign_in_screen.dart';
+import 'sign_up_screen.dart';
 
 /// Lets a new user pick Student or Staff before signing up.
 /// Existing users skip this and tap "Sign in" at the bottom.
@@ -19,16 +21,14 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   UserRole? _selectedRole;
 
   void _continue() {
-    // TODO: open the sign-up screen for the selected role (next step).
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Sign up as ${_selectedRole!.label}: coming next')),
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => SignUpScreen(role: _selectedRole!)),
     );
   }
 
   void _openSignIn() {
-    // TODO: open the sign-in screen (next step).
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sign in: coming next')),
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const SignInScreen()),
     );
   }
 
